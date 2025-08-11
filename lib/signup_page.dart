@@ -486,7 +486,58 @@ class SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _registerUser() async {
+
+    // Check required fields and show SnackBar with missing field name
+    final requiredFields = [
+      {'controller': _firstNameController, 'key': 'first_name'},
+      {'controller': _fatherNameController, 'key': 'father_name'},
+      {'controller': _grandfatherNameController, 'key': 'grandfather_name'},
+      {'controller': _familyNameController, 'key': 'family_name'},
+      {'controller': _idNumberController, 'key': 'id_number'},
+      {'controller': _phoneController, 'key': 'phone'},
+      {'controller': _addressController, 'key': 'address'},
+      {'controller': _emailController, 'key': 'email'},
+      {'controller': _passwordController, 'key': 'password'},
+      {'controller': _confirmPasswordController, 'key': 'confirm_password'},
+    ];
+    for (var field in requiredFields) {
+      final controller = field['controller'] as TextEditingController?;
+      final key = field['key'] as String?;
+      if (controller == null || key == null) continue;
+      if (controller.text.trim().isEmpty) {
+        if (!mounted) return;
+  final fieldName = _translate(key);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('الحقل "$fieldName" مطلوب')),
+        );
+        return;
+      }
+    }
+    if (_birthDate == null) {
+      if (!mounted) return;
+  final birthDateName = _translate('birth_date');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('الحقل "$birthDateName" مطلوب')),
+      );
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
+
+    if (_patientImage == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('الصورة الشخصية مطلوبة')),
+      );
+      return;
+    }
+
+    if (_idImage == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('صورة الهوية مطلوبة')),
+      );
+      return;
+    }
 
     if (_passwordController.text != _confirmPasswordController.text) {
       if (!mounted) return;

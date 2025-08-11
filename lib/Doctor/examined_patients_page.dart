@@ -332,6 +332,7 @@ class _ExaminedPatientsPageState extends State<ExaminedPatientsPage> {
             final data = safeConvertMap(snap.value);
             doctorsData[id] = data;
           } else {
+            // ignore: use_build_context_synchronously
             doctorsData[id] = {'name': _translate(context, 'unknown')};
           }
         }));

@@ -11,7 +11,8 @@ import '../Shared/waiting_list_page.dart';
 import '../Shared/add_patient_page.dart';
 import '../Secretry/account_approv.dart';
 import '../Secretry/secretary_sidebar.dart';
-import 'package:flutter/foundation.dart'; 
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../notifications_page.dart';
 
 class SecretaryDashboard extends StatelessWidget {
@@ -34,6 +35,7 @@ class _SecretaryDashboardContent extends StatefulWidget {
 }
 
 class _SecretaryDashboardState extends State<_SecretaryDashboardContent> {
+  bool _notificationBannerShown = false;
   Widget _buildFeatureBox(
     BuildContext context,
     IconData icon,
@@ -174,7 +176,16 @@ class _SecretaryDashboardState extends State<_SecretaryDashboardContent> {
     _initializeReferences();
     _setupRealtimeListener();
     _loadData();
+    _checkNotificationBannerShown();
     _listenForNotifications();
+
+  }
+
+  Future<void> _checkNotificationBannerShown() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _notificationBannerShown = prefs.getBool('notificationBannerShown') ?? false;
+    });
   }
 
   void _initializeReferences() {
@@ -339,19 +350,52 @@ class _SecretaryDashboardState extends State<_SecretaryDashboardContent> {
   }
 
   void showDashboardBanner(String message, {Color backgroundColor = Colors.green}) {
+    if (_notificationBannerShown) return;
+    _notificationBannerShown = true;
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setBool('notificationBannerShown', true);
+    });
     ScaffoldMessenger.of(context).clearMaterialBanners();
     ScaffoldMessenger.of(context).showMaterialBanner(
       MaterialBanner(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
+        content: Row(
+          children: [
+            const Icon(Icons.notifications, color: Colors.white, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         backgroundColor: backgroundColor,
+        elevation: 4,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         actions: [
-          TextButton(
-            onPressed: () => ScaffoldMessenger.of(context).clearMaterialBanners(),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.white)),
+          TextButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).clearMaterialBanners();
+            },
+            icon: const Icon(Icons.close, color: Colors.white, size: 20),
+            label: const Text('إغلاق', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            ),
           ),
         ],
       ),
     );
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearMaterialBanners();
+      }
+    });
   }
 
   void _listenForNotifications() {
